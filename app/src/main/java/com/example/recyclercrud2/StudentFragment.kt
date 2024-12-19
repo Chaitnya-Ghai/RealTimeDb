@@ -211,7 +211,7 @@ class StudentFragment : Fragment(), StudentInterface {
                         "updated",
                         Toast.LENGTH_SHORT
                     ).show() }
-                    .addOnFailureListener { Toast.makeText(mainActivity, "not Updated", Toast.LENGTH_SHORT).show() }
+                    .addOnFailureListener {Toast.makeText(mainActivity,"not Updated",Toast.LENGTH_SHORT).show()}
 //                recyclerAdapter.notifyDataSetChanged()
 //                array[position].name=customDialog.etName.text.toString()
 //                array[position].Class=customDialog.edClass.text.toString()
@@ -221,9 +221,8 @@ class StudentFragment : Fragment(), StudentInterface {
     }
 
     override fun onClickItem(position: Int, model: StudentInfo) {
-        Toast.makeText(mainActivity, "chl rha hai ${position}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(mainActivity,"chl rha hai ${position}",Toast.LENGTH_SHORT).show()
         val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.id)
-        findNavController().navigate(R.id.action_studentFrag_to_detailScreenFragment,bundle)
-
+        findNavController().navigate(R.id.detailScreenFragment,bundle)
     }
 }
