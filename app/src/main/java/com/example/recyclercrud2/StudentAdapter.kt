@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 
 class StudentAdapter(var context: Context, var students :ArrayList<StudentInfo>, val studentInterface: StudentInterface)
@@ -16,6 +16,7 @@ class StudentAdapter(var context: Context, var students :ArrayList<StudentInfo>,
         val Class =view.findViewById<TextView>(R.id.tvClass)
         val updaeBtn = view.findViewById<Button>(R.id.updateBtn)
         val deleteBtn = view.findViewById<Button>(R.id.deleteBtn)
+        val itemSelected = view.findViewById<ConstraintLayout>(R.id.constraintAdapter)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -33,6 +34,7 @@ class StudentAdapter(var context: Context, var students :ArrayList<StudentInfo>,
         holder.Class.setText(students[position].Class)
         holder.updaeBtn.setOnClickListener{ studentInterface.update(position,item) }
         holder.deleteBtn.setOnClickListener { studentInterface.delete(position,item) }
+        holder.itemSelected.setOnClickListener { studentInterface.onClickItem(position,item) }
 
     }
 

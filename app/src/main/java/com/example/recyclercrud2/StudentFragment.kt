@@ -8,8 +8,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.Visibility
 import com.example.recyclercrud2.databinding.CustomLayoutBinding
 import com.example.recyclercrud2.databinding.FragmentStudentBinding
 import com.google.firebase.database.ChildEventListener
@@ -72,7 +73,6 @@ class StudentFragment : Fragment(), StudentInterface {
                         return@forEachIndexed
                     }
                 }
-
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
@@ -143,8 +143,6 @@ class StudentFragment : Fragment(), StudentInterface {
                                 println("${it.message}")
                             }
 //                        array.add(info)
-//
-                        recyclerAdapter.notifyDataSetChanged()
                         dialog.dismiss()
                     }
                 }
@@ -220,5 +218,12 @@ class StudentFragment : Fragment(), StudentInterface {
             }
             dialog.dismiss()
         }
+    }
+
+    override fun onClickItem(position: Int, model: StudentInfo) {
+        Toast.makeText(mainActivity, "chl rha hai ${position}", Toast.LENGTH_SHORT).show()
+        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.id)
+        findNavController().navigate(R.id.action_studentFrag_to_detailScreenFragment,bundle)
+
     }
 }

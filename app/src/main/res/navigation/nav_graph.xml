@@ -9,5 +9,14 @@
         android:id="@+id/studentFrag"
         android:name="com.example.recyclercrud2.StudentFragment"
         android:label="fragment_student"
-        tools:layout="@layout/fragment_student" />
+        tools:layout="@layout/fragment_student" >
+        <action
+            android:id="@+id/action_studentFrag_to_detailScreenFragment"
+            app:destination="@id/detailScreenFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailScreenFragment"
+        android:name="com.example.recyclercrud2.DetailScreenFragment"
+        android:label="fragment_detail_screen"
+        tools:layout="@layout/fragment_detail_screen" />
 </navigation>
