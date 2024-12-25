@@ -279,7 +279,7 @@ lateinit var customDialog:CustomLayoutBinding
     private fun requestManageExternalStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
             try{
-                val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
                 startActivityForResult(intent,permisssion_req_code)
             }catch (e: ActivityNotFoundException){
                 Toast.makeText(mainActivity, "Activity not Found", Toast.LENGTH_SHORT).show()
@@ -355,7 +355,7 @@ lateinit var customDialog:CustomLayoutBinding
 
     override fun onClickItem(position: Int, model: StudentInfo) {
         Toast.makeText(mainActivity,"chl rha hai ${position}",Toast.LENGTH_SHORT).show()
-        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.rollNo , "img" to imgUri)
+        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.rollNo , "img" to model.image)
         findNavController().navigate(R.id.detailScreenFragment,bundle)
     }
 }

@@ -38,7 +38,7 @@ lateinit var imgUri:String
             name= it.getString("name","")
             Class= it.getString("class","")
             rollNo= it.getString("rollNo","")
-            imgUri= it.getString("imgUri","")
+            imgUri= it.getString("img","")
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
