@@ -1,5 +1,6 @@
 package com.example.recyclercrud2
 
+import android.annotation.SuppressLint
 import android.app.ActionBar
 import android.app.Activity
 import android.app.Application
@@ -71,10 +72,11 @@ lateinit var customDialog:CustomLayoutBinding
     private val manage_ext_storage_req = 101
     var imgUri: Uri? = null
 //
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainActivity= activity as MainActivity
-    supabaseClient = (mainActivity.application as MyApplication).supabaseClient
+        supabaseClient = (mainActivity.application as MyApplication).supabaseClient
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
@@ -140,19 +142,7 @@ lateinit var customDialog:CustomLayoutBinding
         recyclerAdapter=StudentAdapter(this,array,this)
         binding.recyclerView.layoutManager=linearLayoutManager
         binding.recyclerView.adapter=recyclerAdapter
-
-
-        fun requestManagerExternalRequestPermission(){
-            if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.R){
-                try {
-                    var intent =Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    startActivityForResult(intent,pick_image_request)
-                }catch (e:Exception){
-                    Toast.makeText(mainActivity,"Unable to open settings for managing files access", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
+        
 
         binding.fab.setOnClickListener {
             customDialog = CustomLayoutBinding.inflate(mainActivity.layoutInflater)
