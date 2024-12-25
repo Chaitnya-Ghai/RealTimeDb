@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.recyclercrud2.databinding.FragmentDetailScreenBinding
 
 // TODO: Rename parameter arguments, choose names that match
@@ -28,6 +30,7 @@ class DetailScreenFragment : Fragment() {
 lateinit var name:String
 lateinit var Class:String
 lateinit var rollNo:String
+lateinit var imgUri:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainActivity = activity as MainActivity
@@ -35,6 +38,7 @@ lateinit var rollNo:String
             name= it.getString("name","")
             Class= it.getString("class","")
             rollNo= it.getString("rollNo","")
+            imgUri= it.getString("imgUri","")
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
@@ -54,7 +58,10 @@ lateinit var rollNo:String
         binding.tvRollNoDetail.setText(rollNo)
         binding.tvNameDetail.setText(name)
         binding.tvClassDetail.setText(Class)
-        findNavController().popBackStack()
+        Glide.with(mainActivity)
+            .load(imgUri)
+            .placeholder(R.drawable.avatar)
+            .into(binding.imageView)
     }
 
     companion object {

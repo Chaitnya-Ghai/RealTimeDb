@@ -142,7 +142,7 @@ lateinit var customDialog:CustomLayoutBinding
         recyclerAdapter=StudentAdapter(this,array,this)
         binding.recyclerView.layoutManager=linearLayoutManager
         binding.recyclerView.adapter=recyclerAdapter
-        
+
 
         binding.fab.setOnClickListener {
             customDialog = CustomLayoutBinding.inflate(mainActivity.layoutInflater)
@@ -244,8 +244,12 @@ lateinit var customDialog:CustomLayoutBinding
         customDialog.etName.setText(model.name)
         customDialog.edClass.setText(model.Class)
         customDialog.edRollNo.setText(model.rollNo)
-
         customDialog.cancelBtn.visibility=View.GONE
+
+        customDialog.imageView.setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(intent, pick_image_request)
+        }
         customDialog.okBtn.setOnClickListener {
             if (customDialog.edClass.text.toString().isNullOrBlank()){
                 customDialog.edClass.error="Enter your class"
@@ -351,7 +355,7 @@ lateinit var customDialog:CustomLayoutBinding
 
     override fun onClickItem(position: Int, model: StudentInfo) {
         Toast.makeText(mainActivity,"chl rha hai ${position}",Toast.LENGTH_SHORT).show()
-        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.id , "img" to imgUri)
+        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.rollNo , "img" to imgUri)
         findNavController().navigate(R.id.detailScreenFragment,bundle)
     }
 }

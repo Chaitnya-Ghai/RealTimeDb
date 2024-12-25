@@ -11,7 +11,7 @@
         android:id="@+id/imageView"
         android:scaleType="fitCenter"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="140dp"
         tools:src="@tools:sample/avatars" />
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -27,20 +27,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/_25sp"
-            android:text="TextView" />
+            android:text="RollNo" />
         <TextView
             android:id="@+id/tvNameDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/_25sp"
-            android:text="@string/hello_blank_fragment" />
+            android:text="@string/name" />
 
         <TextView
             android:id="@+id/tvClassDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/_25sp"
-            android:text="TextView" />
+            android:text="@string/Class" />
 </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
