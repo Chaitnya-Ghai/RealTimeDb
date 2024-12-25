@@ -1,16 +1,31 @@
 package com.example.recyclercrud2
 
 import android.app.ActionBar
+import android.app.Activity
+import android.app.Application
 import android.app.Dialog
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.Settings
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.recyclercrud2.databinding.CustomLayoutBinding
 import com.example.recyclercrud2.databinding.FragmentStudentBinding
 import com.google.firebase.database.ChildEventListener
@@ -18,6 +33,13 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.storage.UploadStatus
+import io.github.jan.supabase.storage.storage
+import io.github.jan.supabase.storage.uploadAsFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -34,15 +56,25 @@ class StudentFragment : Fragment(), StudentInterface {
     private var param1: String? = null
     private var param2: String? = null
 //    real time data base
+    lateinit var uriImg:String
     var dbRefrence:DatabaseReference=FirebaseDatabase.getInstance().reference
     lateinit var binding: FragmentStudentBinding
     lateinit var mainActivity: MainActivity
     private var array = arrayListOf<StudentInfo>()
     lateinit var recyclerAdapter: StudentAdapter
     lateinit var linearLayoutManager: LinearLayoutManager
+lateinit var customDialog:CustomLayoutBinding
+//
+    lateinit var supabaseClient: SupabaseClient
+    private val pick_image_request = 1
+    private val permisssion_req_code = 100
+    private val manage_ext_storage_req = 101
+    var imgUri: Uri? = null
+//
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainActivity= activity as MainActivity
+    supabaseClient = (mainActivity.application as MyApplication).supabaseClient
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
@@ -63,16 +95,16 @@ class StudentFragment : Fragment(), StudentInterface {
 //                modification
                 val studentInfo:StudentInfo?=snapshot.getValue(StudentInfo::class.java)
                 studentInfo?.id=snapshot.key.toString()
+                if (studentInfo != null) {
                 array.forEachIndexed{
                     index,studentData ->
-                    if (studentInfo != null) {
                         if (studentData.id==studentInfo.id){
                             array[index]=studentInfo
-                            recyclerAdapter.notifyDataSetChanged()
                         }
                         return@forEachIndexed
                     }
                 }
+                recyclerAdapter.notifyDataSetChanged()
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
@@ -98,18 +130,32 @@ class StudentFragment : Fragment(), StudentInterface {
     ): View{
         // Inflate the layout for this fragment
         binding=FragmentStudentBinding.inflate(layoutInflater)
+        checkAndRequestPermission()
         return binding.root
     }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         linearLayoutManager= LinearLayoutManager(mainActivity)
-        recyclerAdapter=StudentAdapter(mainActivity,array,this)
+        recyclerAdapter=StudentAdapter(this,array,this)
         binding.recyclerView.layoutManager=linearLayoutManager
         binding.recyclerView.adapter=recyclerAdapter
+
+
+        fun requestManagerExternalRequestPermission(){
+            if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.R){
+                try {
+                    var intent =Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivityForResult(intent,pick_image_request)
+                }catch (e:Exception){
+                    Toast.makeText(mainActivity,"Unable to open settings for managing files access", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
         binding.fab.setOnClickListener {
-            val customDialog = CustomLayoutBinding.inflate(mainActivity.layoutInflater)
+            customDialog = CustomLayoutBinding.inflate(mainActivity.layoutInflater)
             val dialog = Dialog(mainActivity).apply {
                 setContentView(customDialog.root)
                 setCancelable(false)
@@ -118,6 +164,10 @@ class StudentFragment : Fragment(), StudentInterface {
                     ActionBar.LayoutParams.WRAP_CONTENT
                 )
                 show()
+            }
+            customDialog.imageView.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    startActivityForResult(intent, pick_image_request)
             }
                 customDialog.okBtn.setOnClickListener {
                     if (customDialog.edRollNo.text.toString().isNullOrBlank()){
@@ -130,8 +180,10 @@ class StudentFragment : Fragment(), StudentInterface {
                         customDialog.etName.error="Enter your name"
                     }
                     else{
+
                         val info =StudentInfo(
                             "",
+                            imgUri.toString(),
                             customDialog.edRollNo.text.toString(),
                             customDialog.etName.text.toString(),
                             customDialog.edClass.text.toString())
@@ -151,6 +203,17 @@ class StudentFragment : Fragment(), StudentInterface {
                 }
             }
         }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == pick_image_request){
+            data?.data?.let {
+                    uri ->
+                imgUri=uri
+                uploadImageToSupabase(imgUri!!)
+            }
+        }
+    }
+
     companion object {
         /**
          * Use this factory method to create a new instance of
@@ -204,7 +267,7 @@ class StudentFragment : Fragment(), StudentInterface {
                 customDialog.edRollNo.error="Enter your name"
             }
             else{
-                val info=StudentInfo("",customDialog.edRollNo.text.toString(),customDialog.etName.text.toString(),customDialog.edClass.text.toString())
+                val info=StudentInfo("",imgUri.toString(),customDialog.edRollNo.text.toString(),customDialog.etName.text.toString(),customDialog.edClass.text.toString())
                 dbRefrence.child(model.id?:"").setValue(info).addOnCompleteListener {
                     Toast.makeText(
                         mainActivity,
@@ -219,10 +282,86 @@ class StudentFragment : Fragment(), StudentInterface {
             dialog.dismiss()
         }
     }
+    private fun requestManageExternalStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            try{
+                val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                startActivityForResult(intent,permisssion_req_code)
+            }catch (e: ActivityNotFoundException){
+                Toast.makeText(mainActivity, "Activity not Found", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private fun checkAndRequestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                if (Environment.isExternalStorageManager()){
+                    //permission granted, proceed
+                }else{
+                    //ask for permission
+                    requestManageExternalStoragePermission()
+                }
+            }else{
+                if(ContextCompat.checkSelfPermission(mainActivity,
+                        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                    requestManageExternalStoragePermission()
+                }
+            }
+        }else{
+            if (ContextCompat.checkSelfPermission(mainActivity,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(mainActivity,
+                    arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), permisssion_req_code)
+            }
+        }
+    }
+
+    fun uploadImageToSupabase(imgUri: Uri){
+        val byteArray = uriToByteArray(mainActivity,imgUri)
+        val fileName ="uploads/${System.currentTimeMillis()}.jpg"
+//        document bna deta bucket mai
+        val bucket=supabaseClient.storage.from("studentBucket")//choose youe bucket name
+//        use lifecycleScope for coroutine Usage
+        lifecycleScope.launch(Dispatchers.IO){
+            try {
+//                upload image and handle the response
+                bucket.uploadAsFlow(fileName,byteArray).collect{
+                        status->
+                    withContext(Dispatchers.Main){
+                        when (status){
+                            is UploadStatus.Progress ->{
+                                Toast.makeText(mainActivity, "Uploading", Toast.LENGTH_SHORT).show()
+                            }
+                            is UploadStatus.Success ->{
+                                val imageUrl = bucket.publicUrl(fileName)
+                                val img = customDialog.imageView
+                                Glide.with(mainActivity)
+                                    .load(imgUri)
+                                    .placeholder(R.drawable.add_24)
+                                    .into(img)
+                                Toast.makeText(mainActivity, "upload Successfully", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+            catch (e : Exception){
+                withContext(Dispatchers.Main){
+                    Toast.makeText(mainActivity, "ERROR Uploading Image ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    fun uriToByteArray(context: Context, uri: Uri):ByteArray{
+        val inputStream = context.contentResolver.openInputStream(uri)
+        // content resolver uri ki read krne kaa kaam krta hai
+        return inputStream?.readBytes() ?: ByteArray(0)
+    }
+
 
     override fun onClickItem(position: Int, model: StudentInfo) {
         Toast.makeText(mainActivity,"chl rha hai ${position}",Toast.LENGTH_SHORT).show()
-        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.id)
+        val bundle=bundleOf("name" to model.name, "class" to model.Class , "rollNo" to model.id , "img" to imgUri)
         findNavController().navigate(R.id.detailScreenFragment,bundle)
     }
 }

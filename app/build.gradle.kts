@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
+    kotlin("plugin.serialization") version "1.9.24"
 }
 
 android {
@@ -31,6 +32,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    //        redundant data nah uthayee
+    packagingOptions {
+        exclude ("META-INF/DEPENDENCIES")
+        exclude ("META-INF/LICENSE")
+        exclude ("META-INF/LICENSE.txt")
+        exclude ("META-INF/NOTICE")
+        exclude ("META-INF/NOTICE.txt")
+    }
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -38,6 +47,13 @@ android {
 }
 
 dependencies {
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.2"))
+    implementation("io.github.jan-tennert.supabase:storage-kt:3.0.2")
+    implementation("io.ktor:ktor-client-apache5:3.0.1")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    //Glide Dependencies
+    implementation("com.github.bumptech.glide:glide:4.13.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.13.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

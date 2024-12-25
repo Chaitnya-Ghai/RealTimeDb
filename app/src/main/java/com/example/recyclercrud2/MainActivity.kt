@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.example.recyclercrud2.databinding.ActivityMainBinding
+import io.github.jan.supabase.SupabaseClient
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
